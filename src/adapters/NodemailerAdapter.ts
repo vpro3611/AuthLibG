@@ -26,6 +26,7 @@ export class NodemailerAdapter implements EmailSenderInterface {
 
         if (!this.config.host || !this.config.user || !this.config.pass) {
             // We don't throw here to allow instantiation, but send will fail if not provided later
+            console.warn("NOTE: Some of the config for NodeMailerAdapter (default one) were not set! If not provided later (via .env or etc.), the send operation will fail!");
         }
 
         this.transporter = nodemailer.createTransport({
