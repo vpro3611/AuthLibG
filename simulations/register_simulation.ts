@@ -43,6 +43,13 @@ const authCore = new AuthCore<AppUser>({
             userDatabase.set(newUser.id, newUser);
             console.log(`[DB] Saved new user: ${newUser.username} (${newUser.id})`);
             return newUser;
+        },
+        markAsVerified: async (userId: string) => {
+            const user = userDatabase.get(userId);
+            if (user) {
+                user.isVerified = true;
+                console.log(`[DB] User ${userId} marked as VERIFIED`);
+            }
         }
     }),
     
@@ -51,25 +58,80 @@ const authCore = new AuthCore<AppUser>({
     emailVerificationRepoFactory: () => ({
         deleteByUserIdAndType: async () => {},
         saveToken: async (data) => {
-            verificationTokens.set(data.userId, data);
-            console.log(`[DB] Saved verification token for user ${data.userId}`);
+            verificationTokens.set(data.tokenHash, data);
+            console.log(`[DB] Saved verification token record`);
+        },
+        findByTokenHash: async (hash) => {
+            return verificationTokens.get(hash) || null;
+        },
+        deleteByTokenHash: async (hash) => {
+            verificationTokens.delete(hash);
+            console.log(`[DB] Deleted verification token record`);
         }
     })
 });
 
 async function runRegistrationSimulation() {
-    console.log('--- STARTING REGISTRATION SIMULATION ---');
+    console.log('--- STARTING REGISTRATION + VERIFICATION SIMULATION ---');
     
     try {
+        // STEP 1: REGISTER
         console.log('Action: Registering user "johndoe"...');
         const { user } = await authCore.register('johndoe', 'john@example.com', 'SecurePass123!');
         
-        console.log('Result: Success!');
-        console.log(`User in DB:`, userDatabase.get(user.id));
-        console.log('--- REGISTRATION SIMULATION COMPLETE ---');
+        console.log(`Initial DB State: isVerified =`, userDatabase.get(user.id)?.isVerified);
+
+        // STEP 2: EXTRACT TOKEN (Simulation: getting token from "email")
+        // In reality, the user clicks the link in their email. 
+        // Our ConsoleEmailSender logged the rawToken. For this simulation, we'll find it in our mock token repo.
+        const tokenRecord = Array.from(verificationTokens.values())[0];
+        console.log('\nAction: Simulating user clicking email link...');
+        
+        // We need the RAW token, but our mock repo stores the HASH. 
+        // In a real scenario, the raw token is in the URL.
+        // Let's monkeypatch the email sender to capture the raw token for this test.
+        // Since we already ran register, let's just cheat and use a known token for simulation purposes
+        // or re-run with a captured token.
+        
+        console.log('Note: To keep it simple, we will directly verify using the simulation logic.');
+        
+        // For the sake of simulation, let's just trigger verification. 
+        // To do it "properly" we'd need to capture the raw token from the ConsoleEmailSender output.
+        // Let's assume the raw token was "captured-token-123" by modifying how we register.
     } catch (error: any) {
         console.error('Result: Failed!', error.message);
     }
 }
 
-runRegistrationSimulation();
+// Improved Simulation with Token Capture
+async function runFullFlow() {
+    let capturedRawToken = '';
+    
+    // Override email sender just to capture the token
+    (authCore as any).deps.emailSender = {
+        sendVerificationEmail: async (email: string, token: string) => {
+            capturedRawToken = token;
+            console.log(`[Simulation] Captured raw token from "email": ${token}`);
+        }
+    };
+
+    console.log('\n--- FULL FLOW: REGISTER -> VERIFY -> LOGIN ---');
+    
+    // 1. Register
+    const { user } = await authCore.register('testuser', 'test@test.com', 'Password123!!!');
+    console.log(`User created. isVerified: ${userDatabase.get(user.id)?.isVerified}`);
+
+    // 2. Verify
+    console.log(`Action: Verifying email with token ${capturedRawToken}...`);
+    await authCore.verifyEmail(capturedRawToken);
+    console.log(`Result: isVerified after verification: ${userDatabase.get(user.id)?.isVerified}`);
+
+    // 3. Login Options / Cookies
+    console.log('\n--- COOKIE CONFIGURATION CHECK ---');
+    const options = authCore.getCookieOptions();
+    console.log('Generated Cookie Options:', JSON.stringify(options, null, 2));
+
+    console.log('\n--- FULL FLOW COMPLETE ---');
+}
+
+runFullFlow();
