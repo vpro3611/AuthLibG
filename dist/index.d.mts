@@ -155,7 +155,7 @@ interface AuthCoreDependencies<TUser extends AuthUser> {
 declare class AuthCore<TUser extends AuthUser> {
     private deps;
     constructor(deps: AuthCoreDependencies<TUser>);
-    register(username: string, email: string, password: string): Promise<{
+    register(username: string, email: string, password: string, verificationPath?: string): Promise<{
         user: TUser;
     }>;
     verifyEmail(token: string): Promise<void>;
@@ -242,7 +242,7 @@ declare class RegisterUseCase<TUser extends AuthUser> {
     private readonly emailVerificationRepo;
     private readonly hooks;
     constructor(userRepoReader: UserRepoReader<TUser>, userRepoWriter: UserRepoWriter<TUser>, bcrypter: BcryptInterface, emailSender: EmailSenderInterface, emailVerificationRepo: EmailVerificationInterface, hooks?: AuthHooks<TUser>);
-    execute(username: string, email: string, password: string): Promise<TUser>;
+    execute(username: string, email: string, password: string, verificationPath: string): Promise<TUser>;
 }
 
 declare class VerifyEmailUseCase<TUser extends AuthUser> {

@@ -151,7 +151,7 @@ var RegisterUseCase = class {
   emailSender;
   emailVerificationRepo;
   hooks;
-  async execute(username, email, password) {
+  async execute(username, email, password, verificationPath) {
     const usernameValid = Username.create(username);
     const emailValid = Email.create(email);
     const passwordValid = Password.validatePlain(password);
@@ -180,7 +180,7 @@ var RegisterUseCase = class {
       // 1 hour
       tokenType: "register"
     });
-    await this.emailSender.sendVerificationEmail(emailValid.getValue(), rawToken, "/public/verify-email", "register");
+    await this.emailSender.sendVerificationEmail(emailValid.getValue(), rawToken, verificationPath, "register");
     if (this.hooks.afterRegister) {
       await this.hooks.afterRegister(user);
     }
@@ -287,7 +287,7 @@ var AuthCore = class {
     this.deps = deps;
   }
   deps;
-  async register(username, email, password) {
+  async register(username, email, password, verificationPath = "/verify-email") {
     return this.deps.txManager.runInTransaction(async (client) => {
       const reader = this.deps.userRepoReaderFactory(client);
       const writer = this.deps.userRepoWriterFactory(client);
@@ -300,7 +300,7 @@ var AuthCore = class {
         verifRepo,
         this.deps.hooks
       );
-      const user = await useCase.execute(username, email, password);
+      const user = await useCase.execute(username, email, password, verificationPath);
       return { user };
     });
   }
