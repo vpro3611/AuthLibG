@@ -281,7 +281,6 @@ var CookieHelper = class {
 // src/AuthCore.ts
 import { sha256 as sha2562 } from "js-sha256";
 import * as crypto3 from "crypto";
-var ONE_WEEK = 7 * 24 * 60 * 60 * 1e3;
 var AuthCore = class {
   constructor(deps) {
     this.deps = deps;
@@ -354,11 +353,12 @@ var AuthCore = class {
     const accessToken = this.deps.jwtService.generateAccessToken(userId);
     const refreshToken = this.deps.jwtService.generateRefreshToken(userId);
     const hashedRefreshToken = sha2562(refreshToken);
+    const ttl = this.deps.jwtService.getRefreshTokenExpiresInMs();
     await this.deps.tokenRepo.create({
       id: crypto3.randomUUID(),
       userId,
       tokenHash: hashedRefreshToken,
-      expiresAt: new Date(Date.now() + ONE_WEEK)
+      expiresAt: new Date(Date.now() + ttl)
     });
     return { accessToken, refreshToken };
   }
@@ -373,16 +373,21 @@ var AuthCore = class {
 
 // src/infrastructure/TokenServiceJWT.ts
 import * as jwt from "jsonwebtoken";
+import ms from "ms";
 var TokenServiceJWT = class {
-  constructor(secret) {
+  constructor(secret, options) {
     this.secret = secret;
+    this.accessTokenExpiresIn = options?.accessTokenExpiresIn || "15m";
+    this.refreshTokenExpiresIn = options?.refreshTokenExpiresIn || "7d";
   }
   secret;
+  accessTokenExpiresIn;
+  refreshTokenExpiresIn;
   generateAccessToken(userId) {
-    return jwt.sign({ sub: userId }, this.secret, { expiresIn: "15m" });
+    return jwt.sign({ sub: userId }, this.secret, { expiresIn: this.accessTokenExpiresIn });
   }
   generateRefreshToken(userId) {
-    return jwt.sign({ sub: userId }, this.secret, { expiresIn: "7d" });
+    return jwt.sign({ sub: userId }, this.secret, { expiresIn: this.refreshTokenExpiresIn });
   }
   verifyRefreshToken(token) {
     try {
@@ -391,6 +396,10 @@ var TokenServiceJWT = class {
       if (e.name === "TokenExpiredError") throw new TokenExpiredError("Token expired");
       throw new InvalidTokenError("Invalid token");
     }
+  }
+  getRefreshTokenExpiresInMs() {
+    if (typeof this.refreshTokenExpiresIn === "number") return this.refreshTokenExpiresIn;
+    return ms(this.refreshTokenExpiresIn);
   }
 };
 

@@ -41,6 +41,7 @@ export interface TokenServiceInterface {
     generateAccessToken(userId: string): string;
     generateRefreshToken(userId: string): string;
     verifyRefreshToken(token: string): { sub: string };
+    getRefreshTokenExpiresInMs(): number;
 }
 
 export interface TransactionManagerInterface {
@@ -70,5 +71,9 @@ export interface AuthConfig {
     tokenNames?: {
         accessToken?: string;
         refreshToken?: string;
+    };
+    tokenExpiresIn?: {
+        accessToken?: string | number; // e.g. "15m", "1h"
+        refreshToken?: string | number; // e.g. "7d", "30d"
     };
 }

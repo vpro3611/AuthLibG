@@ -341,7 +341,6 @@ var CookieHelper = class {
 // src/AuthCore.ts
 var import_js_sha2562 = require("js-sha256");
 var crypto3 = __toESM(require("crypto"));
-var ONE_WEEK = 7 * 24 * 60 * 60 * 1e3;
 var AuthCore = class {
   constructor(deps) {
     this.deps = deps;
@@ -414,11 +413,12 @@ var AuthCore = class {
     const accessToken = this.deps.jwtService.generateAccessToken(userId);
     const refreshToken = this.deps.jwtService.generateRefreshToken(userId);
     const hashedRefreshToken = (0, import_js_sha2562.sha256)(refreshToken);
+    const ttl = this.deps.jwtService.getRefreshTokenExpiresInMs();
     await this.deps.tokenRepo.create({
       id: crypto3.randomUUID(),
       userId,
       tokenHash: hashedRefreshToken,
-      expiresAt: new Date(Date.now() + ONE_WEEK)
+      expiresAt: new Date(Date.now() + ttl)
     });
     return { accessToken, refreshToken };
   }
@@ -433,16 +433,21 @@ var AuthCore = class {
 
 // src/infrastructure/TokenServiceJWT.ts
 var jwt = __toESM(require("jsonwebtoken"));
+var import_ms = __toESM(require("ms"));
 var TokenServiceJWT = class {
-  constructor(secret) {
+  constructor(secret, options) {
     this.secret = secret;
+    this.accessTokenExpiresIn = options?.accessTokenExpiresIn || "15m";
+    this.refreshTokenExpiresIn = options?.refreshTokenExpiresIn || "7d";
   }
   secret;
+  accessTokenExpiresIn;
+  refreshTokenExpiresIn;
   generateAccessToken(userId) {
-    return jwt.sign({ sub: userId }, this.secret, { expiresIn: "15m" });
+    return jwt.sign({ sub: userId }, this.secret, { expiresIn: this.accessTokenExpiresIn });
   }
   generateRefreshToken(userId) {
-    return jwt.sign({ sub: userId }, this.secret, { expiresIn: "7d" });
+    return jwt.sign({ sub: userId }, this.secret, { expiresIn: this.refreshTokenExpiresIn });
   }
   verifyRefreshToken(token) {
     try {
@@ -451,6 +456,10 @@ var TokenServiceJWT = class {
       if (e.name === "TokenExpiredError") throw new TokenExpiredError("Token expired");
       throw new InvalidTokenError("Invalid token");
     }
+  }
+  getRefreshTokenExpiresInMs() {
+    if (typeof this.refreshTokenExpiresIn === "number") return this.refreshTokenExpiresIn;
+    return (0, import_ms.default)(this.refreshTokenExpiresIn);
   }
 };
 

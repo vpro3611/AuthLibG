@@ -13,8 +13,6 @@ import { CookieHelper } from './utils/CookieHelper';
 import { sha256 } from 'js-sha256';
 import * as crypto from 'crypto';
 
-const ONE_WEEK = 7 * 24 * 60 * 60 * 1000;
-
 export interface AuthCoreDependencies<TUser extends AuthUser> {
     tokenRepo: RefreshTokenRepoInterface;
     jwtService: TokenServiceInterface;
@@ -104,11 +102,13 @@ export class AuthCore<TUser extends AuthUser> {
         const refreshToken = this.deps.jwtService.generateRefreshToken(userId);
         const hashedRefreshToken = sha256(refreshToken);
 
+        const ttl = this.deps.jwtService.getRefreshTokenExpiresInMs();
+
         await this.deps.tokenRepo.create({
             id: crypto.randomUUID(),
             userId: userId,
             tokenHash: hashedRefreshToken,
-            expiresAt: new Date(Date.now() + ONE_WEEK)
+            expiresAt: new Date(Date.now() + ttl)
         });
 
         return { accessToken, refreshToken };

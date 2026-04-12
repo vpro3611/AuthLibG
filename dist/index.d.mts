@@ -104,6 +104,7 @@ interface TokenServiceInterface {
     verifyRefreshToken(token: string): {
         sub: string;
     };
+    getRefreshTokenExpiresInMs(): number;
 }
 interface TransactionManagerInterface {
     runInTransaction<T>(callback: (client: any) => Promise<T>): Promise<T>;
@@ -129,6 +130,10 @@ interface AuthConfig {
     tokenNames?: {
         accessToken?: string;
         refreshToken?: string;
+    };
+    tokenExpiresIn?: {
+        accessToken?: string | number;
+        refreshToken?: string | number;
     };
 }
 
@@ -191,12 +196,18 @@ declare class AuthCore<TUser extends AuthUser> {
 
 declare class TokenServiceJWT implements TokenServiceInterface {
     private readonly secret;
-    constructor(secret: string);
+    private readonly accessTokenExpiresIn;
+    private readonly refreshTokenExpiresIn;
+    constructor(secret: string, options?: {
+        accessTokenExpiresIn?: string | number;
+        refreshTokenExpiresIn?: string | number;
+    });
     generateAccessToken(userId: string): string;
     generateRefreshToken(userId: string): string;
     verifyRefreshToken(token: string): {
         sub: string;
     };
+    getRefreshTokenExpiresInMs(): number;
 }
 
 declare class RefreshUseCase<TUser extends AuthUser> {
