@@ -154,14 +154,16 @@ interface AuthCoreDependencies<TUser extends AuthUser> {
     txManager: TransactionManagerInterface;
     userRepoReaderFactory: (client: any) => UserRepoReader<TUser>;
     userRepoWriterFactory: (client: any) => UserRepoWriter<TUser>;
-    bcrypter: BcryptInterface;
-    emailSender: EmailSenderInterface;
     emailVerificationRepoFactory: (client: any) => EmailVerificationInterface;
+    bcrypter?: BcryptInterface;
+    emailSender?: EmailSenderInterface;
     hooks?: AuthHooks<TUser>;
     config?: AuthConfig;
 }
 declare class AuthCore<TUser extends AuthUser> {
     private deps;
+    private readonly bcrypter;
+    private readonly emailSender;
     constructor(deps: AuthCoreDependencies<TUser>);
     register(username: string, email: string, password: string, verificationPath?: string): Promise<{
         user: TUser;
@@ -301,6 +303,21 @@ declare class ConsoleEmailSender implements EmailSenderInterface {
     sendVerificationEmail(email: string, token: string, path: string, type: string): Promise<void>;
 }
 
+interface NodemailerConfig {
+    host: string;
+    port: number;
+    user: string;
+    pass: string;
+    fromName: string;
+    baseUrl: string;
+}
+declare class NodemailerAdapter implements EmailSenderInterface {
+    private readonly transporter;
+    private readonly config;
+    constructor(config?: Partial<NodemailerConfig>);
+    sendVerificationEmail(email: string, token: string, path: string, type: string): Promise<void>;
+}
+
 declare class InMemoryRefreshTokenRepo implements RefreshTokenRepoInterface {
     private tokens;
     create(data: {
@@ -329,4 +346,4 @@ declare class CookieHelper {
     };
 }
 
-export { type AuthConfig, AuthCore, type AuthCoreDependencies, type AuthHooks, type AuthUser, BcryptAdapter, type BcryptInterface, ConsoleEmailSender, CookieHelper, type CookieOptions, DomainError, Email, EmailAlreadyExistsError, type EmailSenderInterface, type EmailVerificationInterface, EmailVerificationRepoPg, InMemoryRefreshTokenRepo, InvalidCredentialsError, InvalidEmailError, InvalidPasswordError, InvalidTokenError, InvalidUsernameError, LoginEmailUseCase, LoginUsernameUseCase, Password, type RefreshTokenRepoInterface, RefreshTokenRepoPg, RefreshUseCase, RegisterUseCase, TokenExpiredError, type TokenServiceInterface, TokenServiceJWT, type TransactionManagerInterface, UserNotFoundError, type UserRepoReader, type UserRepoWriter, Username, UsernameAlreadyExistsError, VerifyEmailUseCase };
+export { type AuthConfig, AuthCore, type AuthCoreDependencies, type AuthHooks, type AuthUser, BcryptAdapter, type BcryptInterface, ConsoleEmailSender, CookieHelper, type CookieOptions, DomainError, Email, EmailAlreadyExistsError, type EmailSenderInterface, type EmailVerificationInterface, EmailVerificationRepoPg, InMemoryRefreshTokenRepo, InvalidCredentialsError, InvalidEmailError, InvalidPasswordError, InvalidTokenError, InvalidUsernameError, LoginEmailUseCase, LoginUsernameUseCase, NodemailerAdapter, type NodemailerConfig, Password, type RefreshTokenRepoInterface, RefreshTokenRepoPg, RefreshUseCase, RegisterUseCase, TokenExpiredError, type TokenServiceInterface, TokenServiceJWT, type TransactionManagerInterface, UserNotFoundError, type UserRepoReader, type UserRepoWriter, Username, UsernameAlreadyExistsError, VerifyEmailUseCase };

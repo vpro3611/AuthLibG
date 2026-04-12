@@ -10,6 +10,8 @@ import { RegisterUseCase } from './usecases/RegisterUseCase';
 import { RefreshUseCase } from './usecases/RefreshUseCase';
 import { VerifyEmailUseCase } from './usecases/VerifyEmailUseCase';
 import { CookieHelper } from './utils/CookieHelper';
+import { BcryptAdapter } from './adapters/BcryptAdapter';
+import { NodemailerAdapter } from './adapters/NodemailerAdapter';
 import { sha256 } from 'js-sha256';
 import * as crypto from 'crypto';
 
@@ -19,15 +21,21 @@ export interface AuthCoreDependencies<TUser extends AuthUser> {
     txManager: TransactionManagerInterface;
     userRepoReaderFactory: (client: any) => UserRepoReader<TUser>;
     userRepoWriterFactory: (client: any) => UserRepoWriter<TUser>;
-    bcrypter: BcryptInterface;
-    emailSender: EmailSenderInterface;
     emailVerificationRepoFactory: (client: any) => EmailVerificationInterface;
+    bcrypter?: BcryptInterface;
+    emailSender?: EmailSenderInterface;
     hooks?: AuthHooks<TUser>;
     config?: AuthConfig;
 }
 
 export class AuthCore<TUser extends AuthUser> {
-    constructor(private deps: AuthCoreDependencies<TUser>) {}
+    private readonly bcrypter: BcryptInterface;
+    private readonly emailSender: EmailSenderInterface;
+
+    constructor(private deps: AuthCoreDependencies<TUser>) {
+        this.bcrypter = deps.bcrypter || new BcryptAdapter();
+        this.emailSender = deps.emailSender || new NodemailerAdapter();
+    }
 
     async register(username: string, email: string, password: string, verificationPath: string = '/verify-email') {
         return this.deps.txManager.runInTransaction(async (client) => {
@@ -36,8 +44,8 @@ export class AuthCore<TUser extends AuthUser> {
             const verifRepo = this.deps.emailVerificationRepoFactory(client);
             
             const useCase = new RegisterUseCase(
-                reader, writer, this.deps.bcrypter, 
-                this.deps.emailSender, verifRepo, this.deps.hooks
+                reader, writer, this.bcrypter, 
+                this.emailSender, verifRepo, this.deps.hooks
             );
             const user = await useCase.execute(username, email, password, verificationPath);
             return { user };
@@ -56,7 +64,7 @@ export class AuthCore<TUser extends AuthUser> {
     async loginByEmail(email: string, password: string) {
         return this.deps.txManager.runInTransaction(async (client) => {
             const reader = this.deps.userRepoReaderFactory(client);
-            const useCase = new LoginEmailUseCase(reader, this.deps.bcrypter, this.deps.hooks);
+            const useCase = new LoginEmailUseCase(reader, this.bcrypter, this.deps.hooks);
             const user = await useCase.execute(email, password);
             const tokens = await this.generateTokens(user.getId());
             return { user, ...tokens };
@@ -66,7 +74,7 @@ export class AuthCore<TUser extends AuthUser> {
     async loginByUsername(username: string, password: string) {
         return this.deps.txManager.runInTransaction(async (client) => {
             const reader = this.deps.userRepoReaderFactory(client);
-            const useCase = new LoginUsernameUseCase(reader, this.deps.bcrypter, this.deps.hooks);
+            const useCase = new LoginUsernameUseCase(reader, this.bcrypter, this.deps.hooks);
             const user = await useCase.execute(username, password);
             const tokens = await this.generateTokens(user.getId());
             return { user, ...tokens };

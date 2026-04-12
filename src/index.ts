@@ -14,5 +14,6 @@ export * from './usecases/VerifyEmailUseCase';
 export * from './infrastructure/EmailVerificationRepoPg';
 export * from './adapters/BcryptAdapter';
 export * from './adapters/ConsoleEmailSender';
+export * from './adapters/NodemailerAdapter';
 export * from './adapters/InMemoryRefreshTokenRepo';
 export * from './utils/CookieHelper';
