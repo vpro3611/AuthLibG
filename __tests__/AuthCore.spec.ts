@@ -34,11 +34,12 @@ const dummyTokenRepo: RefreshTokenRepoInterface = {
 
 const dummyJwtService: TokenServiceInterface = {
     generateAccessToken: () => 'access_token',
-    generateRefreshToken: () => 'refresh_token', getRefreshTokenExpiresInMs: () => 604800000,
+    generateRefreshToken: () => 'refresh_token',
     verifyRefreshToken: (token: string) => {
         if (token === 'valid_refresh') return { sub: 'user1' };
         throw new InvalidTokenError('Invalid token');
-    }
+    },
+    getRefreshTokenExpiresInMs: () => 604800000,
 };
 
 const dummyTxManager: TransactionManagerInterface = {
@@ -77,9 +78,14 @@ describe('AuthCore Integration Dummies', () => {
             jwtService: dummyJwtService,
             txManager: dummyTxManager,
             userRepoReaderFactory: () => userRepoReader,
-            userRepoWriterFactory: () => ({ save: async () => dummyUsers[0] }),
+            userRepoWriterFactory: () => ({ save: async () => dummyUsers[0], markAsVerified: async () => {} }),
             emailSender: { sendVerificationEmail: async () => {} },
-            emailVerificationRepoFactory: () => ({ deleteByUserIdAndType: async () => {}, saveToken: async () => {} }),
+            emailVerificationRepoFactory: () => ({ 
+                deleteByUserIdAndType: async () => {}, 
+                saveToken: async () => {},
+                findByTokenHash: async () => null,
+                deleteByTokenHash: async () => {}
+            }),
             bcrypter: dummyBcrypt,
             hooks
         };

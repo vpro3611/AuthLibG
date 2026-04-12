@@ -14,6 +14,7 @@ const mockReader: UserRepoReader<MockUser> = {
 
 const mockWriter: UserRepoWriter<MockUser> = {
     save: async () => new MockUser(),
+    markAsVerified: async () => {}
 };
 
 const mockBcrypt: BcryptInterface = {
@@ -24,6 +25,8 @@ const mockBcrypt: BcryptInterface = {
 const mockEmailVerif: EmailVerificationInterface = {
     deleteByUserIdAndType: async () => {},
     saveToken: async () => {},
+    findByTokenHash: async () => null,
+    deleteByTokenHash: async () => {}
 };
 
 const mockEmailSender: EmailSenderInterface = {
@@ -33,12 +36,12 @@ const mockEmailSender: EmailSenderInterface = {
 describe('RegisterUseCase', () => {
     it('should register successfully', async () => {
         const useCase = new RegisterUseCase(mockReader, mockWriter, mockBcrypt, mockEmailSender, mockEmailVerif, {});
-        const user = await useCase.execute('newuser', 'new@example.com', 'StrongPass123!');
+        const user = await useCase.execute('newuser', 'new@example.com', 'StrongPass123!', '/verify');
         expect(user.getId()).toBe('1');
     });
 
     it('should fail if email is taken', async () => {
         const useCase = new RegisterUseCase(mockReader, mockWriter, mockBcrypt, mockEmailSender, mockEmailVerif, {});
-        await expect(useCase.execute('newuser', 'taken@example.com', 'StrongPass123!')).rejects.toThrow();
+        await expect(useCase.execute('newuser', 'taken@example.com', 'StrongPass123!', '/verify')).rejects.toThrow();
     });
 });

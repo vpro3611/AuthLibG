@@ -4,12 +4,12 @@ import * as jwt from 'jsonwebtoken';
 import ms, { StringValue } from 'ms';
 
 export class TokenServiceJWT implements TokenServiceInterface {
-    private readonly accessTokenExpiresIn: string | number;
-    private readonly refreshTokenExpiresIn: string | number;
+    private readonly accessTokenExpiresIn: string;
+    private readonly refreshTokenExpiresIn: string;
 
     constructor(
         private readonly secret: string,
-        options?: { accessTokenExpiresIn?: string | number, refreshTokenExpiresIn?: string | number }
+        options?: { accessTokenExpiresIn?: string, refreshTokenExpiresIn?: string}
     ) {
         this.accessTokenExpiresIn = options?.accessTokenExpiresIn || '15m';
         this.refreshTokenExpiresIn = options?.refreshTokenExpiresIn || '7d';
