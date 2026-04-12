@@ -1,6 +1,6 @@
 # AuthCore Library (AuthLibG)
 
-> **A framework-agnostic, enterprise-grade authentication core for modern Node.js applications.**
+> **A framework-agnostic, authentication core for modern Node.js applications.**
 
 AuthLibG is a pure business-logic library that handles the heavy lifting of authentication—registration, login, JWT management, and email verification—while giving you complete control over your database schema and web framework.
 
