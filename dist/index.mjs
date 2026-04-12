@@ -377,6 +377,9 @@ import ms from "ms";
 var TokenServiceJWT = class {
   constructor(secret, options) {
     this.secret = secret;
+    if (!secret) {
+      throw new Error("JWT secret must be provided");
+    }
     this.accessTokenExpiresIn = options?.accessTokenExpiresIn || "15m";
     this.refreshTokenExpiresIn = options?.refreshTokenExpiresIn || "7d";
   }
@@ -384,21 +387,35 @@ var TokenServiceJWT = class {
   accessTokenExpiresIn;
   refreshTokenExpiresIn;
   generateAccessToken(userId) {
-    return jwt.sign({ sub: userId }, this.secret, { expiresIn: this.accessTokenExpiresIn });
+    return jwt.sign({ sub: userId }, this.secret, {
+      expiresIn: this.accessTokenExpiresIn
+    });
   }
   generateRefreshToken(userId) {
-    return jwt.sign({ sub: userId }, this.secret, { expiresIn: this.refreshTokenExpiresIn });
+    return jwt.sign({ sub: userId }, this.secret, {
+      expiresIn: this.refreshTokenExpiresIn
+    });
+  }
+  verifyAccessToken(token) {
+    return this.verify(token);
   }
   verifyRefreshToken(token) {
+    return this.verify(token);
+  }
+  verify(token) {
     try {
       return jwt.verify(token, this.secret);
     } catch (e) {
-      if (e.name === "TokenExpiredError") throw new TokenExpiredError("Token expired");
+      if (e.name === "TokenExpiredError") {
+        throw new TokenExpiredError("Token expired");
+      }
       throw new InvalidTokenError("Invalid token");
     }
   }
   getRefreshTokenExpiresInMs() {
-    if (typeof this.refreshTokenExpiresIn === "number") return this.refreshTokenExpiresIn;
+    if (typeof this.refreshTokenExpiresIn === "number") {
+      return this.refreshTokenExpiresIn;
+    }
     return ms(this.refreshTokenExpiresIn);
   }
 };

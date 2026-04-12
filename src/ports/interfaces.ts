@@ -40,6 +40,7 @@ export interface RefreshTokenRepoInterface {
 export interface TokenServiceInterface {
     generateAccessToken(userId: string): string;
     generateRefreshToken(userId: string): string;
+    verifyAccessToken(token: string): { sub: string };
     verifyRefreshToken(token: string): { sub: string };
     getRefreshTokenExpiresInMs(): number;
 }
@@ -73,7 +74,7 @@ export interface AuthConfig {
         refreshToken?: string;
     };
     tokenExpiresIn?: {
-        accessToken?: string | number; // e.g. "15m", "1h"
-        refreshToken?: string | number; // e.g. "7d", "30d"
+        accessToken?: string | number;
+        refreshToken?: string | number;
     };
 }

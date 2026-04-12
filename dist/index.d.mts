@@ -101,6 +101,9 @@ interface RefreshTokenRepoInterface {
 interface TokenServiceInterface {
     generateAccessToken(userId: string): string;
     generateRefreshToken(userId: string): string;
+    verifyAccessToken(token: string): {
+        sub: string;
+    };
     verifyRefreshToken(token: string): {
         sub: string;
     };
@@ -204,9 +207,13 @@ declare class TokenServiceJWT implements TokenServiceInterface {
     });
     generateAccessToken(userId: string): string;
     generateRefreshToken(userId: string): string;
+    verifyAccessToken(token: string): {
+        sub: string;
+    };
     verifyRefreshToken(token: string): {
         sub: string;
     };
+    private verify;
     getRefreshTokenExpiresInMs(): number;
 }
 

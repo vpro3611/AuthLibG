@@ -34,7 +34,7 @@ const dummyTokenRepo: RefreshTokenRepoInterface = {
 
 const dummyJwtService: TokenServiceInterface = {
     generateAccessToken: () => 'access_token',
-    generateRefreshToken: () => 'refresh_token',
+    generateRefreshToken: () => 'refresh_token', verifyAccessToken: (token) => ({ sub: 'user1' }),
     verifyRefreshToken: (token: string) => {
         if (token === 'valid_refresh') return { sub: 'user1' };
         throw new InvalidTokenError('Invalid token');
