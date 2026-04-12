@@ -11,6 +11,7 @@ export * from './infrastructure/RefreshTokenRepoPg';
 export * from './usecases/LoginUsernameUseCase';
 export * from './usecases/RegisterUseCase';
 export * from './usecases/VerifyEmailUseCase';
+export * from './infrastructure/EmailVerificationRepoPg';
 export * from './adapters/BcryptAdapter';
 export * from './adapters/ConsoleEmailSender';
 export * from './adapters/InMemoryRefreshTokenRepo';

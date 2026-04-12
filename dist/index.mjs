@@ -452,6 +452,34 @@ var RefreshTokenRepoPg = class {
   }
 };
 
+// src/infrastructure/EmailVerificationRepoPg.ts
+var EmailVerificationRepoPg = class {
+  constructor(client) {
+    this.client = client;
+  }
+  client;
+  async deleteByUserIdAndType(userId, type) {
+    const query = "DELETE FROM email_verification_tokens WHERE user_id = $1 AND token_type = $2";
+    await this.client.query(query, [userId, type]);
+  }
+  async saveToken(data) {
+    const query = `
+            INSERT INTO email_verification_tokens (id, user_id, token_hash, created_at, expires_at, token_type)
+            VALUES ($1, $2, $3, $4, $5, $6)
+        `;
+    await this.client.query(query, [data.id, data.userId, data.tokenHash, data.createdAt, data.expiresAt, data.tokenType]);
+  }
+  async findByTokenHash(hash2) {
+    const query = 'SELECT user_id as "userId", token_type as "tokenType", expires_at as "expiresAt" FROM email_verification_tokens WHERE token_hash = $1';
+    const result = await this.client.query(query, [hash2]);
+    return result.rows[0] || null;
+  }
+  async deleteByTokenHash(hash2) {
+    const query = "DELETE FROM email_verification_tokens WHERE token_hash = $1";
+    await this.client.query(query, [hash2]);
+  }
+};
+
 // src/adapters/BcryptAdapter.ts
 import * as bcrypt from "bcryptjs";
 var BcryptAdapter = class {
@@ -512,6 +540,7 @@ export {
   DomainError,
   Email,
   EmailAlreadyExistsError,
+  EmailVerificationRepoPg,
   InMemoryRefreshTokenRepo,
   InvalidCredentialsError,
   InvalidEmailError,

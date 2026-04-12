@@ -270,6 +270,26 @@ declare class VerifyEmailUseCase<TUser extends AuthUser> {
     execute(rawToken: string): Promise<void>;
 }
 
+declare class EmailVerificationRepoPg implements EmailVerificationInterface {
+    private readonly client;
+    constructor(client: PoolClient);
+    deleteByUserIdAndType(userId: string, type: string): Promise<void>;
+    saveToken(data: {
+        id: string;
+        userId: string;
+        tokenHash: string;
+        createdAt: Date;
+        expiresAt: Date;
+        tokenType: string;
+    }): Promise<void>;
+    findByTokenHash(hash: string): Promise<{
+        userId: string;
+        tokenType: string;
+        expiresAt: Date;
+    } | null>;
+    deleteByTokenHash(hash: string): Promise<void>;
+}
+
 declare class BcryptAdapter implements BcryptInterface {
     private readonly saltRounds;
     constructor(saltRounds?: number);
@@ -309,4 +329,4 @@ declare class CookieHelper {
     };
 }
 
-export { type AuthConfig, AuthCore, type AuthCoreDependencies, type AuthHooks, type AuthUser, BcryptAdapter, type BcryptInterface, ConsoleEmailSender, CookieHelper, type CookieOptions, DomainError, Email, EmailAlreadyExistsError, type EmailSenderInterface, type EmailVerificationInterface, InMemoryRefreshTokenRepo, InvalidCredentialsError, InvalidEmailError, InvalidPasswordError, InvalidTokenError, InvalidUsernameError, LoginEmailUseCase, LoginUsernameUseCase, Password, type RefreshTokenRepoInterface, RefreshTokenRepoPg, RefreshUseCase, RegisterUseCase, TokenExpiredError, type TokenServiceInterface, TokenServiceJWT, type TransactionManagerInterface, UserNotFoundError, type UserRepoReader, type UserRepoWriter, Username, UsernameAlreadyExistsError, VerifyEmailUseCase };
+export { type AuthConfig, AuthCore, type AuthCoreDependencies, type AuthHooks, type AuthUser, BcryptAdapter, type BcryptInterface, ConsoleEmailSender, CookieHelper, type CookieOptions, DomainError, Email, EmailAlreadyExistsError, type EmailSenderInterface, type EmailVerificationInterface, EmailVerificationRepoPg, InMemoryRefreshTokenRepo, InvalidCredentialsError, InvalidEmailError, InvalidPasswordError, InvalidTokenError, InvalidUsernameError, LoginEmailUseCase, LoginUsernameUseCase, Password, type RefreshTokenRepoInterface, RefreshTokenRepoPg, RefreshUseCase, RegisterUseCase, TokenExpiredError, type TokenServiceInterface, TokenServiceJWT, type TransactionManagerInterface, UserNotFoundError, type UserRepoReader, type UserRepoWriter, Username, UsernameAlreadyExistsError, VerifyEmailUseCase };
