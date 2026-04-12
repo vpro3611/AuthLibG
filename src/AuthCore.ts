@@ -31,7 +31,7 @@ export interface AuthCoreDependencies<TUser extends AuthUser> {
 export class AuthCore<TUser extends AuthUser> {
     constructor(private deps: AuthCoreDependencies<TUser>) {}
 
-    async register(username: string, email: string, password: string) {
+    async register(username: string, email: string, password: string, verificationPath: string = '/verify-email') {
         return this.deps.txManager.runInTransaction(async (client) => {
             const reader = this.deps.userRepoReaderFactory(client);
             const writer = this.deps.userRepoWriterFactory(client);
@@ -41,7 +41,7 @@ export class AuthCore<TUser extends AuthUser> {
                 reader, writer, this.deps.bcrypter, 
                 this.deps.emailSender, verifRepo, this.deps.hooks
             );
-            const user = await useCase.execute(username, email, password);
+            const user = await useCase.execute(username, email, password, verificationPath);
             return { user };
         });
     }

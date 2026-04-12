@@ -15,7 +15,7 @@ export class RegisterUseCase<TUser extends AuthUser> {
         private readonly hooks: AuthHooks<TUser> = {}
     ) {}
 
-    async execute(username: string, email: string, password: string): Promise<TUser> {
+    async execute(username: string, email: string, password: string, verificationPath: string): Promise<TUser> {
         const usernameValid = Username.create(username);
         const emailValid = Email.create(email);
         const passwordValid = Password.validatePlain(password);
@@ -32,14 +32,12 @@ export class RegisterUseCase<TUser extends AuthUser> {
 
         const passwordHash = await this.bcrypter.hash(passwordValid);
 
-        // Save raw user data; the app's UserRepoWriter handles mapping it to the DB entity
         const user = await this.userRepoWriter.save({
             username: usernameValid.getValue(),
             email: emailValid.getValue(),
             passwordHash: passwordHash
         });
 
-        // Verification flow
         await this.emailVerificationRepo.deleteByUserIdAndType(user.getId(), "register");
         
         const rawToken = crypto.randomBytes(32).toString('hex');
@@ -54,7 +52,7 @@ export class RegisterUseCase<TUser extends AuthUser> {
             tokenType: "register"
         });
 
-        await this.emailSender.sendVerificationEmail(emailValid.getValue(), rawToken, "/public/verify-email", "register");
+        await this.emailSender.sendVerificationEmail(emailValid.getValue(), rawToken, verificationPath, "register");
 
         if (this.hooks.afterRegister) {
             await this.hooks.afterRegister(user);
