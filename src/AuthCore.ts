@@ -1,12 +1,15 @@
 import { 
     AuthUser, UserRepoReader, UserRepoWriter, BcryptInterface, 
     AuthHooks, TokenServiceInterface, RefreshTokenRepoInterface,
-    TransactionManagerInterface, EmailSenderInterface, EmailVerificationInterface
+    TransactionManagerInterface, EmailSenderInterface, EmailVerificationInterface,
+    AuthConfig
 } from './ports/interfaces';
 import { LoginEmailUseCase } from './usecases/LoginEmailUseCase';
 import { LoginUsernameUseCase } from './usecases/LoginUsernameUseCase';
 import { RegisterUseCase } from './usecases/RegisterUseCase';
 import { RefreshUseCase } from './usecases/RefreshUseCase';
+import { VerifyEmailUseCase } from './usecases/VerifyEmailUseCase';
+import { CookieHelper } from './utils/CookieHelper';
 import { sha256 } from 'js-sha256';
 import * as crypto from 'crypto';
 
@@ -22,6 +25,7 @@ export interface AuthCoreDependencies<TUser extends AuthUser> {
     emailSender: EmailSenderInterface;
     emailVerificationRepoFactory: (client: any) => EmailVerificationInterface;
     hooks?: AuthHooks<TUser>;
+    config?: AuthConfig;
 }
 
 export class AuthCore<TUser extends AuthUser> {
@@ -42,19 +46,13 @@ export class AuthCore<TUser extends AuthUser> {
         });
     }
 
-    async generateTokens(userId: string) {
-        const accessToken = this.deps.jwtService.generateAccessToken(userId);
-        const refreshToken = this.deps.jwtService.generateRefreshToken(userId);
-        const hashedRefreshToken = sha256(refreshToken);
-
-        await this.deps.tokenRepo.create({
-            id: crypto.randomUUID(),
-            userId: userId,
-            tokenHash: hashedRefreshToken,
-            expiresAt: new Date(Date.now() + ONE_WEEK)
+    async verifyEmail(token: string) {
+        return this.deps.txManager.runInTransaction(async (client) => {
+            const writer = this.deps.userRepoWriterFactory(client);
+            const verifRepo = this.deps.emailVerificationRepoFactory(client);
+            const useCase = new VerifyEmailUseCase(verifRepo, writer);
+            await useCase.execute(token);
         });
-
-        return { accessToken, refreshToken };
     }
 
     async loginByEmail(email: string, password: string) {
@@ -99,5 +97,28 @@ export class AuthCore<TUser extends AuthUser> {
             const hashed = sha256(refreshToken);
             await this.deps.tokenRepo.revokeByHash(hashed);
         });
+    }
+
+    async generateTokens(userId: string) {
+        const accessToken = this.deps.jwtService.generateAccessToken(userId);
+        const refreshToken = this.deps.jwtService.generateRefreshToken(userId);
+        const hashedRefreshToken = sha256(refreshToken);
+
+        await this.deps.tokenRepo.create({
+            id: crypto.randomUUID(),
+            userId: userId,
+            tokenHash: hashedRefreshToken,
+            expiresAt: new Date(Date.now() + ONE_WEEK)
+        });
+
+        return { accessToken, refreshToken };
+    }
+
+    getCookieOptions() {
+        return {
+            accessToken: CookieHelper.getAccessTokenOptions(this.deps.config),
+            refreshToken: CookieHelper.getRefreshTokenOptions(this.deps.config),
+            names: CookieHelper.getTokenNames(this.deps.config)
+        };
     }
 }

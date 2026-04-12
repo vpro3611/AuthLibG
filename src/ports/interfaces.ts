@@ -10,7 +10,8 @@ export interface UserRepoReader<TUser extends AuthUser> {
 }
 
 export interface UserRepoWriter<TUser extends AuthUser> {
-    save(user: Omit<TUser, "getId"> | any): Promise<TUser>; 
+    save(user: Omit<TUser, "getId"> | any): Promise<TUser>;
+    markAsVerified(userId: string): Promise<void>;
 }
 
 export interface BcryptInterface {
@@ -25,6 +26,8 @@ export interface EmailSenderInterface {
 export interface EmailVerificationInterface {
     deleteByUserIdAndType(userId: string, type: string): Promise<void>;
     saveToken(data: { id: string, userId: string, tokenHash: string, createdAt: Date, expiresAt: Date, tokenType: string }): Promise<void>;
+    findByTokenHash(hash: string): Promise<{ userId: string, tokenType: string, expiresAt: Date } | null>;
+    deleteByTokenHash(hash: string): Promise<void>;
 }
 
 export interface RefreshTokenRepoInterface {
@@ -48,4 +51,24 @@ export interface AuthHooks<TUser extends AuthUser> {
     beforeLogin?: (user: TUser) => void | Promise<void>;
     beforeRegister?: (email: string, username: string) => void | Promise<void>;
     afterRegister?: (user: TUser) => void | Promise<void>;
+}
+
+export interface CookieOptions {
+    httpOnly?: boolean;
+    secure?: boolean;
+    sameSite?: 'lax' | 'strict' | 'none';
+    maxAge?: number;
+    path?: string;
+    domain?: string;
+}
+
+export interface AuthConfig {
+    cookieOptions?: {
+        accessToken?: CookieOptions;
+        refreshToken?: CookieOptions;
+    };
+    tokenNames?: {
+        accessToken?: string;
+        refreshToken?: string;
+    };
 }

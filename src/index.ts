@@ -10,6 +10,8 @@ export * from './usecases/RefreshUseCase';
 export * from './infrastructure/RefreshTokenRepoPg';
 export * from './usecases/LoginUsernameUseCase';
 export * from './usecases/RegisterUseCase';
+export * from './usecases/VerifyEmailUseCase';
 export * from './adapters/BcryptAdapter';
 export * from './adapters/ConsoleEmailSender';
 export * from './adapters/InMemoryRefreshTokenRepo';
+export * from './utils/CookieHelper';
