@@ -39,14 +39,36 @@ npx auth-core-init-db
 export DB_TYPE="mysql" # or "sqlite"
 npx auth-core-init-db
 ```
-*Note: For MySQL and SQLite, the tool will output the exact SQL schema for you to copy into your migration system.*
+
+---
+
+## 📧 Default Email Sender (Nodemailer)
+
+AuthLibG comes with a built-in `NodemailerAdapter` enabled by default. If you don't provide a custom `emailSender` during initialization, the library will automatically use this adapter.
+
+### Required Environment Variables
+To use the default sender, ensure your application has the following `.env` variables configured:
+
+```env
+# SMTP Configuration
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your-email@gmail.com
+SMTP_PASS=your-app-password
+
+# Application Identity
+APP_NAME="My Awesome App"
+API_URL="http://localhost:3000"
+```
+
+*Note: `API_URL` is required to construct the absolute verification links sent to users.*
 
 ---
 
 ## 🏗 Customization & "Danger Zones"
 
 ### 🟢 Safe to Overwrite (Extension Points)
-- **`EmailSenderInterface`**: Connect to SendGrid, AWS SES, or Mailgun.
+- **`EmailSenderInterface`**: Use your own implementation for SendGrid, AWS SES, etc.
 - **`BcryptInterface`**: Use a different hashing algorithm if required.
 - **`TransactionManagerInterface`**: Adapt to your specific DB driver (TypeORM, Prisma, Kysely, etc.).
 
@@ -57,7 +79,7 @@ You **MUST** implement the following to bridge your user schema with the library
 3.  **`UserRepoWriter`**: Implement `save()` and `markAsVerified()`.
 
 ### 🔴 Not Recommended to Overwrite (UB Risk)
-- **`RefreshTokenRepoInterface`** & **`EmailVerificationInterface`**: The library relies on internal `sha256` hashing patterns for these tokens. Overwriting them without matching this logic will break the auth flow.
+- **`RefreshTokenRepoInterface`** & **`EmailVerificationInterface`**: The library relies on internal `sha256` hashing patterns. Overwriting these without matching this logic will break the auth flow.
 
 ---
 
