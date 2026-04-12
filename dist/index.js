@@ -370,6 +370,7 @@ var NodemailerAdapter = class {
       baseUrl: config?.baseUrl || process.env.API_URL || ""
     };
     if (!this.config.host || !this.config.user || !this.config.pass) {
+      console.warn("NOTE: Some of the config for NodeMailerAdapter (default one) were not set! If not provided later (via .env or etc.), the send operation will fail!");
     }
     this.transporter = import_nodemailer.default.createTransport({
       host: this.config.host,

@@ -109,3 +109,8 @@ You **MUST** implement the following to bridge your user schema with the library
 
 ## 📜 License
 MIT License. See `LICENSE` for details.
+
+---
+
+## 🚀 Examples
+For more practical integration approaches (e.g., Express.js setup), check out the examples located in the `/examples` directory of this repository.
