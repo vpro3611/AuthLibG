@@ -54,7 +54,7 @@ You are encouraged to provide your own implementations for:
 Because AuthLibG doesn't know what your `users` table looks like, you **MUST** implement the following interfaces to bridge your schema with the library:
 
 1.  **`AuthUser`**: Your User entity must implement `getId()` and `getPasswordHash()`.
-2.  **`UserRepoReader`**: Must implement methods to find your user by ID, Email, or Username.
+2.  **`UserRepoReader`**: Must implement methods to find your user by ID, Email, or Username (`getUserById(id: string`, `getUserByUsername(username: string)`, `getUserByEmail(email: string)`).
 3.  **`UserRepoWriter`**: Must implement `save()` and `markAsVerified()`.
 
 > **Critical**: Ensure `markAsVerified()` actually updates your database persistent state, or users will never be able to pass "isVerified" hooks in future sessions.
