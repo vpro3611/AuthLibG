@@ -68,7 +68,8 @@ describe('AuthCore Integration Dummies', () => {
         userRepoReader = {
             getUserById: async (id: string) => dummyUsers.find(u => u.id === id) || null,
             getUserByUsername: async () => null,
-            getUserByEmail: async (email: string) => dummyUsers.find(u => u.email === email) || null
+            getUserByEmail: async (email: string) => dummyUsers.find(u => u.email === email) || null,
+            getUserByGoogleId: async () => null,
         };
     });
 
@@ -78,7 +79,7 @@ describe('AuthCore Integration Dummies', () => {
             jwtService: dummyJwtService,
             txManager: dummyTxManager,
             userRepoReaderFactory: () => userRepoReader,
-            userRepoWriterFactory: () => ({ save: async () => dummyUsers[0], markAsVerified: async () => {} }),
+            userRepoWriterFactory: () => ({ save: async () => dummyUsers[0], markAsVerified: async () => {} , linkGoogleId: async () => {} }),
             emailSender: { sendVerificationEmail: async () => {} },
             emailVerificationRepoFactory: () => ({ 
                 deleteByUserIdAndType: async () => {}, 

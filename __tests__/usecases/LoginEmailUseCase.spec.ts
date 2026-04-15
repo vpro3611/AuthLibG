@@ -11,6 +11,7 @@ const mockRepoReader: UserRepoReader<MockUser> = {
     getUserById: async () => null,
     getUserByUsername: async () => null,
     getUserByEmail: async (e) => e === 'test@example.com' ? new MockUser() : null,
+    getUserByGoogleId: async () => null,
 };
 
 const mockBcrypt: BcryptInterface = {
