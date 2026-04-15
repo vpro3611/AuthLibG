@@ -2,7 +2,7 @@ import {
     AuthUser, UserRepoReader, UserRepoWriter, BcryptInterface, 
     AuthHooks, TokenServiceInterface, RefreshTokenRepoInterface,
     TransactionManagerInterface, EmailSenderInterface, EmailVerificationInterface,
-    AuthConfig
+    AuthConfig, GoogleTokenVerifierInterface
 } from './ports/interfaces';
 import { LoginEmailUseCase } from './usecases/LoginEmailUseCase';
 import { LoginUsernameUseCase } from './usecases/LoginUsernameUseCase';
@@ -24,6 +24,7 @@ export interface AuthCoreDependencies<TUser extends AuthUser> {
     emailVerificationRepoFactory: (client: any) => EmailVerificationInterface;
     bcrypter?: BcryptInterface;
     emailSender?: EmailSenderInterface;
+    googleVerifier?: GoogleTokenVerifierInterface;
     hooks?: AuthHooks<TUser>;
     config?: AuthConfig;
 }

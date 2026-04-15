@@ -7,11 +7,30 @@ export interface UserRepoReader<TUser extends AuthUser> {
     getUserById(id: string): Promise<TUser | null>;
     getUserByUsername(username: string): Promise<TUser | null>;
     getUserByEmail(email: string): Promise<TUser | null>;
+    getUserByGoogleId(googleId: string): Promise<TUser | null>;
 }
 
 export interface UserRepoWriter<TUser extends AuthUser> {
-    save(user: Omit<TUser, "getId"> | any): Promise<TUser>;
+    save(user: { 
+        username: string, 
+        email: string, 
+        passwordHash?: string, 
+        googleId?: string, 
+        isVerified?: boolean 
+    } | any): Promise<TUser>;
     markAsVerified(userId: string): Promise<void>;
+    linkGoogleId(userId: string, googleId: string): Promise<void>;
+}
+
+export interface GoogleUserIdentity {
+    sub: string;
+    email: string;
+    name?: string;
+    picture?: string;
+}
+
+export interface GoogleTokenVerifierInterface {
+    verify(idToken: string): Promise<GoogleUserIdentity>;
 }
 
 export interface BcryptInterface {
