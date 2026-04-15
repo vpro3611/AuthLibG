@@ -10,11 +10,13 @@ const mockReader: UserRepoReader<MockUser> = {
     getUserById: async () => null,
     getUserByEmail: async (e) => e === 'taken@example.com' ? new MockUser() : null,
     getUserByUsername: async (u) => u === 'taken' ? new MockUser() : null,
+    getUserByGoogleId: async () => null,
 };
 
 const mockWriter: UserRepoWriter<MockUser> = {
     save: async () => new MockUser(),
-    markAsVerified: async () => {}
+    markAsVerified: async () => {},
+    linkGoogleId: async () => {},
 };
 
 const mockBcrypt: BcryptInterface = {

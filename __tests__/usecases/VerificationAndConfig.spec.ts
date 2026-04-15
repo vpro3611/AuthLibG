@@ -13,7 +13,8 @@ describe('Email Verification and Configuration', () => {
     describe('VerifyEmailUseCase', () => {
         const mockWriter: UserRepoWriter<MockUser> = {
             save: async () => new MockUser(),
-            markAsVerified: jest.fn()
+            markAsVerified: jest.fn(),
+            linkGoogleId: async () => {},
         };
 
         it('should throw error for invalid token', async () => {
@@ -46,10 +47,15 @@ describe('Email Verification and Configuration', () => {
                 sendVerificationEmail: jest.fn()
             };
             const mockReader: UserRepoReader<MockUser> = {
-                getUserById: async () => null, getUserByEmail: async () => null, getUserByUsername: async () => null
+                getUserById: async () => null, 
+                getUserByEmail: async () => null, 
+                getUserByUsername: async () => null,
+                getUserByGoogleId: async () => null,
             };
             const mockWriter: UserRepoWriter<MockUser> = {
-                save: async () => new MockUser(), markAsVerified: async () => {}
+                save: async () => new MockUser(), 
+                markAsVerified: async () => {},
+                linkGoogleId: async () => {},
             };
             const mockRepo: EmailVerificationInterface = {
                 deleteByUserIdAndType: async () => {}, saveToken: async () => {}, 
