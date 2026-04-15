@@ -54,10 +54,27 @@ interface UserRepoReader<TUser extends AuthUser> {
     getUserById(id: string): Promise<TUser | null>;
     getUserByUsername(username: string): Promise<TUser | null>;
     getUserByEmail(email: string): Promise<TUser | null>;
+    getUserByGoogleId(googleId: string): Promise<TUser | null>;
 }
 interface UserRepoWriter<TUser extends AuthUser> {
-    save(user: Omit<TUser, "getId"> | any): Promise<TUser>;
+    save(user: {
+        username: string;
+        email: string;
+        passwordHash?: string;
+        googleId?: string;
+        isVerified?: boolean;
+    } | any): Promise<TUser>;
     markAsVerified(userId: string): Promise<void>;
+    linkGoogleId(userId: string, googleId: string): Promise<void>;
+}
+interface GoogleUserIdentity {
+    sub: string;
+    email: string;
+    name?: string;
+    picture?: string;
+}
+interface GoogleTokenVerifierInterface {
+    verify(idToken: string): Promise<GoogleUserIdentity>;
 }
 interface BcryptInterface {
     hash(data: string): Promise<string>;
@@ -157,6 +174,7 @@ interface AuthCoreDependencies<TUser extends AuthUser> {
     emailVerificationRepoFactory: (client: any) => EmailVerificationInterface;
     bcrypter?: BcryptInterface;
     emailSender?: EmailSenderInterface;
+    googleVerifier?: GoogleTokenVerifierInterface;
     hooks?: AuthHooks<TUser>;
     config?: AuthConfig;
 }
@@ -346,4 +364,4 @@ declare class CookieHelper {
     };
 }
 
-export { type AuthConfig, AuthCore, type AuthCoreDependencies, type AuthHooks, type AuthUser, BcryptAdapter, type BcryptInterface, ConsoleEmailSender, CookieHelper, type CookieOptions, DomainError, Email, EmailAlreadyExistsError, type EmailSenderInterface, type EmailVerificationInterface, EmailVerificationRepoPg, InMemoryRefreshTokenRepo, InvalidCredentialsError, InvalidEmailError, InvalidPasswordError, InvalidTokenError, InvalidUsernameError, LoginEmailUseCase, LoginUsernameUseCase, NodemailerAdapter, type NodemailerConfig, Password, type RefreshTokenRepoInterface, RefreshTokenRepoPg, RefreshUseCase, RegisterUseCase, TokenExpiredError, type TokenServiceInterface, TokenServiceJWT, type TransactionManagerInterface, UserNotFoundError, type UserRepoReader, type UserRepoWriter, Username, UsernameAlreadyExistsError, VerifyEmailUseCase };
+export { type AuthConfig, AuthCore, type AuthCoreDependencies, type AuthHooks, type AuthUser, BcryptAdapter, type BcryptInterface, ConsoleEmailSender, CookieHelper, type CookieOptions, DomainError, Email, EmailAlreadyExistsError, type EmailSenderInterface, type EmailVerificationInterface, EmailVerificationRepoPg, type GoogleTokenVerifierInterface, type GoogleUserIdentity, InMemoryRefreshTokenRepo, InvalidCredentialsError, InvalidEmailError, InvalidPasswordError, InvalidTokenError, InvalidUsernameError, LoginEmailUseCase, LoginUsernameUseCase, NodemailerAdapter, type NodemailerConfig, Password, type RefreshTokenRepoInterface, RefreshTokenRepoPg, RefreshUseCase, RegisterUseCase, TokenExpiredError, type TokenServiceInterface, TokenServiceJWT, type TransactionManagerInterface, UserNotFoundError, type UserRepoReader, type UserRepoWriter, Username, UsernameAlreadyExistsError, VerifyEmailUseCase };
