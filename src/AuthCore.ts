@@ -9,6 +9,7 @@ import { LoginUsernameUseCase } from './usecases/LoginUsernameUseCase';
 import { RegisterUseCase } from './usecases/RegisterUseCase';
 import { RefreshUseCase } from './usecases/RefreshUseCase';
 import { VerifyEmailUseCase } from './usecases/VerifyEmailUseCase';
+import { LoginGoogleUseCase } from './usecases/LoginGoogleUseCase';
 import { CookieHelper } from './utils/CookieHelper';
 import { BcryptAdapter } from './adapters/BcryptAdapter';
 import { NodemailerAdapter } from './adapters/NodemailerAdapter';
@@ -77,6 +78,23 @@ export class AuthCore<TUser extends AuthUser> {
             const reader = this.deps.userRepoReaderFactory(client);
             const useCase = new LoginUsernameUseCase(reader, this.bcrypter, this.deps.hooks);
             const user = await useCase.execute(username, password);
+            const tokens = await this.generateTokens(user.getId());
+            return { user, ...tokens };
+        });
+    }
+
+    async loginByGoogle(idToken: string) {
+        if (!this.deps.googleVerifier) {
+            throw new Error('GoogleTokenVerifierInterface is not configured in AuthCoreDependencies');
+        }
+        return this.deps.txManager.runInTransaction(async (client) => {
+            const reader = this.deps.userRepoReaderFactory(client);
+            const writer = this.deps.userRepoWriterFactory(client);
+            
+            const useCase = new LoginGoogleUseCase(
+                reader, writer, this.deps.googleVerifier!, this.deps.hooks
+            );
+            const user = await useCase.execute(idToken);
             const tokens = await this.generateTokens(user.getId());
             return { user, ...tokens };
         });

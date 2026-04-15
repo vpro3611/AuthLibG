@@ -4,6 +4,7 @@ export * from './domain/Username';
 export * from './domain/Password';
 export * from './ports/interfaces';
 export * from './usecases/LoginEmailUseCase';
+export * from './usecases/LoginGoogleUseCase';
 export * from './AuthCore';
 export * from './infrastructure/TokenServiceJWT';
 export * from './usecases/RefreshUseCase';
