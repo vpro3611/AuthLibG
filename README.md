@@ -10,6 +10,7 @@ AuthLibG is a pure business-logic library that handles the heavy lifting of auth
 
 ### What it solves
 - **Decoupled Auth Logic**: Separate your authentication rules from Express/Fastify/NestJS.
+- **Google OAuth2 Support**: Seamlessly integrate Google Sign-In with automatic account creation and linking.
 - **JWT Lifecycle**: Automated Access and Refresh token generation, hashing, and rotation.
 - **Email Verification**: Built-in flow for registration confirmation.
 - **Versatile Adapters**: Swap between PostgreSQL, In-Memory, or custom repositories instantly.
@@ -75,8 +76,8 @@ API_URL="http://localhost:3000"
 ### 🟡 Handle with Care (The User Bridge)
 You **MUST** implement the following to bridge your user schema with the library:
 1.  **`AuthUser`**: Your User entity must implement `getId()` and `getPasswordHash()`.
-2.  **`UserRepoReader`**: Implement methods to find users by ID, Email, or Username.
-3.  **`UserRepoWriter`**: Implement `save()` and `markAsVerified()`.
+2.  **`UserRepoReader`**: Implement methods to find users by ID, Email, Username, or **Google ID**.
+3.  **`UserRepoWriter`**: Implement `save()` and `markAsVerified(), and **linkGoogleId()**..
 
 ### 🔴 Not Recommended to Overwrite (UB Risk)
 - **`RefreshTokenRepoInterface`** & **`EmailVerificationInterface`**: The library relies on internal `sha256` hashing patterns. Overwriting these without matching this logic will break the auth flow.
@@ -92,6 +93,7 @@ You **MUST** implement the following to bridge your user schema with the library
 | **Register** | `auth.register(user, email, pass, path)` | Hashes password, saves user, and sends verification email. |
 | **Verify** | `auth.verifyEmail(token)` | Confirms the email token and marks user as verified. |
 | **Login (Email)** | `auth.loginByEmail(email, pass)` | Validates credentials and returns `{user, accessToken, refreshToken}`. |
+| **Login (Google)** | `auth.loginByGoogle(idToken)` | Verifies the token, finds/links/registers the user, and returns tokens. |
 | **Refresh** | `auth.refresh(token)` | Rotates tokens and invalidates the old refresh token. |
 
 ---
